@@ -31,10 +31,22 @@ void showBord(char *_tictoes) {
 
 }
 
-struct Move getMove(int choice, struct Player *player) {
+int inputValidation(const int choice) {
+    if (choice < 0 || choice > 8) {
+        printf("Invalid input");
+        return 0;
+    }
+    return 1;
+}
 
+static struct Move getMove(int choice, struct Player *player) {
+    printf("Player %c choose: \n", player->symbol);
     scanf_s("%d", &choice);
-    struct Move move = {
+    // input validation
+    if (inputValidation(choice) == 0) {
+        getMove(choice, player);
+    }
+    const struct Move move = {
         .index = choice,
         .player = player
     };
@@ -48,6 +60,7 @@ int checkValidMove(const int *tictoes, struct Move *move) {
     }
     return 0;
 }
+
 
 int checkVictory(const char *_tictoes) {
     // check if a game winning move was made
@@ -131,19 +144,23 @@ int checkVictory(const char *_tictoes) {
 
 }
 
-void placeChoice(char *_tictoes, int *tictoes, struct Move *move) {
+void placeChoice(char *_tictoes, int *tictoes, struct Move *move, int choice) {
     if (checkValidMove(tictoes, move) == 1) {
         // place the moves symbol where the choice is
         _tictoes[move->index] = move->player->symbol;
         // next place a 1 in the int array at the moves index so checkValidMove returns a 0
         tictoes[move->index] = 1;
     }
+    else {
+        printf("That Tile is occupied\n");
+        struct Move move1 = getMove(choice, move->player);
+        placeChoice(_tictoes, tictoes, &move1, choice);
+    }
 
 }
 
 int gameLoop() {
     // define arrays
-    printf("You lose your turn if you click the same tile as the opponent.\n");
     int tictoes[9] = {0};
     char _tictoes[9] = {' ', ' ', ' ',
                         ' ', ' ', ' ',
@@ -163,16 +180,14 @@ int gameLoop() {
     // while checkVictory == 0
     while (checkVictory(_tictoes) == 0) {
         showBord(_tictoes);
-        printf("Player one choose: \n");
         struct Move move1 = getMove(choice1, &player1);
-        placeChoice(_tictoes, tictoes, &move1);
+        placeChoice(_tictoes, tictoes, &move1, choice1);
         if (checkVictory(_tictoes) == 1) {
             break;
         }
 
-        printf("Player two choose position: \n");
         struct Move move2 = getMove(choice2, &player2);
-        placeChoice(_tictoes, tictoes, &move2);
+        placeChoice(_tictoes, tictoes, &move2, choice2);
     }
 
 
